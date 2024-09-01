@@ -1,0 +1,34 @@
+# .gitignore
+# Robot Parts
+*.stl
+*.dae
+# Local files
+.env
+*.DS_Store
+# Python
+*.py[oc]
+__pycache__/
+*.egg-info
+.eggs/
+.mypy_cache/*
+.pyre/
+.pytest_cache/
+.ruff_cache/
+.dmypy.json
+# Databases
+*.db
+*meshes*
+logs/*
+# Build artifacts
+build/
+dist/
+*.so
+out*/
+
+# Training artifacts
+wandb/
+runs/
+logs/
+isaacgym/
+third_party/
+*.tar.gz
