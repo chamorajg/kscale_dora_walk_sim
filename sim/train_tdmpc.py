@@ -42,30 +42,30 @@ class TDMPC_DoraConfigs:
 	min_std : float = 0.05
 	temperature : float = 0.5
 	momentum : float = 0.1
-	horizon : int = 5
+	horizon : int = 10
 	std_schedule: str = f"linear(0.5, {min_std}, 50000)"
 	horizon_schedule: str = f"linear(1, {horizon}, 25000)"
 
-	batch_size: int = 1024
+	batch_size: int = 2048
 	max_buffer_size : int = 1000000
-	reward_coef : float = 1
-	value_coef : float = 0.5
-	consistency_coef : float = 2
-	rho : float = 0.5
+	reward_coef : float = 1.0
+	value_coef : float = 1.0
+	consistency_coef : float = 2.0
+	rho : float = 0.75
 	kappa : float = 0.1
 	per_alpha: float = 0.6
 	per_beta : float =  0.4
 	grad_clip_norm : float =  10
 	seed_steps: int = 3000
-	update_freq: int = 2
-	tau: int = 0.01
+	update_freq: int = 4
+	tau: int = 0.05
 
 	discount : float = 0.99
 	buffer_device : str = "cpu"
 	train_steps : int = int(1e6)
 	num_q : int = 5
 
-	action_repeat : int = 4
+	action_repeat : int = 2
 	eval_freq: int = 15000
 	eval_episodes : int = 1
 
@@ -141,16 +141,15 @@ def train(args: argparse.Namespace) -> None:
 	tdmpc_cfg.obs_shape = [state.shape[0]]
 	tdmpc_cfg.action_shape = (env.num_actions)
 	tdmpc_cfg.action_dim = env.num_actions
-	episode_length = 60
-	tdmpc_cfg.episode_length = episode_length # int(env.max_episode_length // tdmpc_cfg.action_repeat)
+	episode_length = 1000 # int(env.max_episode_length // tdmpc_cfg.action_repeat)
+	tdmpc_cfg.episode_length = episode_length
 	tdmpc_cfg.num_envs = env.num_envs
 	
 	L = logger.Logger(work_dir, tdmpc_cfg)	
 	
 	agent = TDMPC(tdmpc_cfg)
 	buffer = ReplayBuffer(tdmpc_cfg)
-	fp = None # "/home/guest/sim/logs/walk_state_dora_42/models/tdmpc_policy_33.pt"
-	# agent.load(fp)
+	fp = None 
 	init_step = 0
 	episode_idx, start_time = 0, time.time()
 	if fp is not None:
@@ -179,13 +178,13 @@ def train(args: argparse.Namespace) -> None:
 		# Update model
 		train_metrics = {}
 		if step >= tdmpc_cfg.seed_steps:
-			num_updates = 10 # tdmpc_cfg.seed_steps if step == tdmpc_cfg.seed_steps else int(env.max_episode_length // tdmpc_cfg.action_repeat)
+			num_updates = 20 # tdmpc_cfg.seed_steps if step == tdmpc_cfg.seed_steps else int(env.max_episode_length // tdmpc_cfg.action_repeat)
 			for i in range(num_updates):
 				train_metrics.update(agent.update(buffer, step+i))
 
 		# Log training episode
 		episode_idx += 1
-		env_step = int(step) # * tdmpc_cfg.action_repeat)
+		env_step = int(step * tdmpc_cfg.action_repeat * tdmpc_cfg.num_envs)
 		common_metrics = {
 			'episode': episode_idx,
 			'step': step,

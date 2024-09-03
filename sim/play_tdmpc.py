@@ -147,6 +147,7 @@ def train(args: argparse.Namespace) -> None:
     env, _ = task_registry.make_env(name=args.task, args=args)	
 
     tdmpc_cfg = TDMPC_DoraConfigs
+    # tdmpc_cfg.action_repeat = 1
     env.set_camera(env_cfg.viewer.pos, env_cfg.viewer.lookat)
 
     camera_properties = gymapi.CameraProperties()
@@ -179,7 +180,7 @@ def train(args: argparse.Namespace) -> None:
     video = VideoRecorder(log_dir)
 
     agent = TDMPC(tdmpc_cfg)
-    fp = "/home/guest/sim/logs/2024-09-01_15-30-21_walk_state_dora/models/tdmpc_policy_61.pt"
+    fp = "/home/guest/sim/logs/2024-09-01_15-30-21_walk_state_dora/models/tdmpc_policy_257.pt"
     
     agent.load(fp)
     step = 0
